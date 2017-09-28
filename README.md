@@ -74,10 +74,11 @@ TarantoolClient client = new TarantoolClientImpl(socketChannelProvider, config);
 >   resolution, you could create a function that returns necessary name-to-ID
 >   mappings.
 
-`TarantoolClient` provides three interfaces to execute queries:
+`TarantoolClient` provides four interfaces to execute queries:
 
 * `SyncOps` - returns the operation result
 * `AsyncOps` - returns the operation result as a `Future`
+* `ComposableAsyncOps`- return the operation result as a `CompletionStage` 
 * `FireAndForgetOps` - returns the query ID
 
 Feel free to override any method of `TarantoolClientImpl`. For example, to hook

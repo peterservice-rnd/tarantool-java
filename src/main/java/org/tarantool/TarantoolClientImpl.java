@@ -8,6 +8,8 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -31,7 +33,7 @@ public class TarantoolClientImpl extends TarantoolBase<Future<List<?>>> implemen
     protected volatile Exception thumbstone;
     protected volatile CountDownLatch alive;
 
-    protected Map<Long, FutureImpl<List<?>>> futures;
+    protected Map<Long, CompletableFuture<List<?>>> futures;
     protected AtomicInteger wait = new AtomicInteger();
     /**
      * Write properties
@@ -49,6 +51,7 @@ public class TarantoolClientImpl extends TarantoolBase<Future<List<?>>> implemen
      */
     protected SyncOps syncOps;
     protected FireAndForgetOps fireAndForgetOps;
+    protected ComposableAsyncOps composableAsyncOps;
 
     /**
      * Inner
@@ -77,7 +80,7 @@ public class TarantoolClientImpl extends TarantoolBase<Future<List<?>>> implemen
         this.alive = new CountDownLatch(1);
         this.socketProvider = socketProvider;
         this.stats = new TarantoolClientStats();
-        this.futures = new ConcurrentHashMap<Long, FutureImpl<List<?>>>(config.predictedFutures);
+        this.futures = new ConcurrentHashMap<>(config.predictedFutures);
         this.sharedBuffer = ByteBuffer.allocateDirect(config.sharedBufferSize);
         this.writerBuffer = ByteBuffer.allocateDirect(sharedBuffer.capacity());
         this.connector.setDaemon(true);
@@ -197,21 +200,22 @@ public class TarantoolClientImpl extends TarantoolBase<Future<List<?>>> implemen
     }
 
 
-    public Future<List<?>> exec(Code code, Object... args) {
+    public CompletableFuture<List<?>> exec(Code code, Object... args) {
         validateArgs(args);
-        FutureImpl<List<?>> q = new FutureImpl<List<?>>(syncId.incrementAndGet());
+        long sid = syncId.incrementAndGet();
+        CompletableFuture<List<?>> q = new CompletableFuture<>();
         if (isDead(q)) {
             return q;
         }
-        futures.put(q.getId(), q);
+        futures.put(sid, q);
         if (isDead(q)) {
-            futures.remove(q.getId());
+            futures.remove(sid);
             return q;
         }
         try {
-            write(code, q.getId(), null, args);
+            write(code, sid, null, args);
         } catch (Exception e) {
-            futures.remove(q.getId());
+            futures.remove(sid);
             fail(q, e);
         }
         return q;
@@ -225,11 +229,11 @@ public class TarantoolClientImpl extends TarantoolBase<Future<List<?>>> implemen
         this.thumbstone = new CommunicationException(message, cause);
         this.alive = new CountDownLatch(1);
         while (!futures.isEmpty()) {
-            Iterator<Map.Entry<Long, FutureImpl<List<?>>>> iterator = futures.entrySet().iterator();
+            Iterator<Map.Entry<Long, CompletableFuture<List<?>>>> iterator = futures.entrySet().iterator();
             while (iterator.hasNext()) {
-                Map.Entry<Long, FutureImpl<List<?>>> elem = iterator.next();
+                Map.Entry<Long, CompletableFuture<List<?>>> elem = iterator.next();
                 if (elem != null) {
-                    FutureImpl<List<?>> future = elem.getValue();
+                    CompletableFuture<List<?>> future = elem.getValue();
                     fail(future, cause);
                 }
                 iterator.remove();
@@ -333,7 +337,7 @@ public class TarantoolClientImpl extends TarantoolBase<Future<List<?>>> implemen
                     readPacket(is);
                     code = (Long) headers.get(Key.CODE.getId());
                     Long syncId = (Long) headers.get(Key.SYNC.getId());
-                    FutureImpl<List<?>> future = futures.remove(syncId);
+                    CompletableFuture<List<?>> future = futures.remove(syncId);
                     stats.received++;
                     wait.decrementAndGet();
                     complete(code, future);
@@ -381,14 +385,14 @@ public class TarantoolClientImpl extends TarantoolBase<Future<List<?>>> implemen
     }
 
 
-    protected void fail(FutureImpl<List<?>> q, Exception e) {
-        q.setError(e);
+    protected void fail(CompletableFuture<List<?>> q, Exception e) {
+        q.completeExceptionally(e);
     }
 
-    protected void complete(long code, FutureImpl<List<?>> q) {
+    protected void complete(long code, CompletableFuture<List<?>> q) {
         if (q != null) {
             if (code == 0) {
-                q.setValue((List) body.get(Key.DATA.getId()));
+                q.complete((List) body.get(Key.DATA.getId()));
             } else {
                 Object error = body.get(Key.ERROR.getId());
                 fail(q, serverError(code, error));
@@ -489,6 +493,11 @@ public class TarantoolClientImpl extends TarantoolBase<Future<List<?>>> implemen
     }
 
     @Override
+    public TarantoolClientOps<Integer, List<?>, Object, CompletionStage<List<?>>> composableAsyncOps() {
+        return composableAsyncOps;
+    }
+
+    @Override
     public TarantoolClientOps<Integer, List<?>, Object, Long> fireAndForgetOps() {
         return fireAndForgetOps;
     }
@@ -529,7 +538,19 @@ public class TarantoolClientImpl extends TarantoolBase<Future<List<?>>> implemen
         }
     }
 
-    protected boolean isDead(FutureImpl<List<?>> q) {
+    protected class ComposableAsyncOps extends AbstractTarantoolOps<Integer, List<?>, Object, CompletionStage<List<?>>> {
+        @Override
+        public CompletionStage<List<?>> exec(Code code, Object... args) {
+            return TarantoolClientImpl.this.exec(code, args);
+        }
+
+        @Override
+        public void close() {
+            TarantoolClientImpl.this.close();
+        }
+    }
+
+    protected boolean isDead(CompletableFuture<List<?>> q) {
         if (TarantoolClientImpl.this.thumbstone != null) {
             fail(q, new CommunicationException("Connection is dead", thumbstone));
             return true;
