@@ -3,7 +3,7 @@
 align="right">
 </a>
 
-# Java connector for Tarantool 1.7.4+
+# Java connector for Tarantool 1.7.4+ (java 8 fork)
 
 [![Join the chat at https://gitter.im/tarantool/tarantool-java](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/tarantool/tarantool-java?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
