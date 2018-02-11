@@ -1,62 +1,77 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.tarantool</groupId>
-    <artifactId>connector</artifactId>
-    <version>1.7.6-SNAPSHOT</version>
-    <packaging>jar</packaging>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-    <name>Tarantool Connector for Java</name>
+  <groupId>org.tarantool</groupId>
+  <artifactId>connector-java8</artifactId>
+  <version>1.7.6</version>
+  <packaging>bundle</packaging>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <name>Tarantool Connector for Java</name>
+  <url>https://github.com/tarantool/tarantool-java</url>
+  <description>Tarantool client for java</description>
+
+  <licenses>
+    <license>
+      <name>The BSD licence</name>
+      <url>http://opensource.org/licenses/BSD-3-Clause</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
     <url>https://github.com/tarantool/tarantool-java</url>
-    <description>Tarantool client for java</description>
-    <licenses>
-        <license>
-            <name>The BSD licence</name>
-            <url>http://opensource.org/licenses/BSD-3-Clause</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
+    <connection>scm:git:git://github.com/tarantool/tarantool-java.git</connection>
+    <developerConnection>scm:git:git@github.com:tarantool/tarantool-java.git</developerConnection>
+  </scm>
+  <developers>
+    <developer>
+      <name>Dmitry Grytsovets</name>
+      <email>dmitry.grytsovets@gmail.com</email>
+      <organization>Tarantool</organization>
+      <organizationUrl>http://tarantool.org/</organizationUrl>
+    </developer>
+  </developers>
 
-    <scm>
-        <url>https://github.com/tarantool/tarantool-java</url>
-        <connection>scm:git:git://github.com/tarantool/tarantool-java.git</connection>
-        <developerConnection>scm:git:git@github.com:tarantool/tarantool-java.git</developerConnection>
-    </scm>
-    <developers>
-        <developer>
-            <name>Dmitry Grytsovets</name>
-            <email>dmitry.grytsovets@gmail.com</email>
-            <organization>Tarantool</organization>
-            <organizationUrl>http://tarantool.org/</organizationUrl>
-        </developer>
-    </developers>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.7.0</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
 
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>7</version>
-    </parent>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>3.5.0</version>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>

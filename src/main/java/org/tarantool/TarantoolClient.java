@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 public interface TarantoolClient {
     TarantoolClientOps<Integer, List<?>, Object, List<?>> syncOps();
 
-    TarantoolClientOps<Integer, List<?>, Object, Future<List<?>>> asyncOps();
+    TarantoolClientOps<Integer, List<?>, Object, ? extends Future<List<?>>> asyncOps();
 
     TarantoolClientOps<Integer, List<?>, Object, CompletionStage<List<?>>> composableAsyncOps();
 

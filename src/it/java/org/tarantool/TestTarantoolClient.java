@@ -7,11 +7,7 @@ import java.nio.channels.SocketChannel;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 
 public class TestTarantoolClient {
@@ -81,7 +77,7 @@ public class TestTarantoolClient {
         }
 
         @Override
-        protected void complete(long code, FutureImpl<List<?>> q) {
+        protected void complete(long code, CompletableFuture<List<?>> q) {
             super.complete(code, q);
             if (code != 0) {
                 System.out.println(code);

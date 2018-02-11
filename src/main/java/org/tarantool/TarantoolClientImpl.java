@@ -86,11 +86,13 @@ public class TarantoolClientImpl extends TarantoolBase<Future<List<?>>> implemen
         this.connector.setDaemon(true);
         this.connector.setName("Tarantool connector");
         this.syncOps = new SyncOps();
+        this.composableAsyncOps = new ComposableAsyncOps();
         this.fireAndForgetOps = new FireAndForgetOps();
         if (config.useNewCall) {
             setCallCode(Code.CALL);
             this.syncOps.setCallCode(Code.CALL);
             this.fireAndForgetOps.setCallCode(Code.CALL);
+            this.composableAsyncOps.setCallCode(Code.CALL);
         }
         connector.start();
         try {
