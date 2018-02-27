@@ -107,10 +107,10 @@ public class TarantoolClientImpl extends TarantoolBase<Future<List<?>>> implemen
     }
 
     protected void reconnect(int retry, Throwable lastError) {
-        SocketChannel channel;
+        SocketChannel channel = null;
         while (!Thread.interrupted()) {
-            channel = socketProvider.get(retry++, lastError == NOT_INIT_EXCEPTION ? null : lastError);
             try {
+                channel = socketProvider.get(retry++, lastError == NOT_INIT_EXCEPTION ? null : lastError);
                 connect(channel);
                 return;
             } catch (Exception e) {
