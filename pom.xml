@@ -74,4 +74,16 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <distributionManagement>
+    <repository>
+      <id>releases</id>
+      <name>Internal Releases</name>
+      <url>https://artifactory.billing.ru/artifactory/peterservice-releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>snapshots</id>
+      <name>Internal Releases</name>
+      <url>https://artifactory.billing.ru/artifactory/peterservice-snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
 </project>
